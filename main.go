@@ -7,16 +7,16 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/suryadharma5/gobank/api"
 	db "github.com/suryadharma5/gobank/db/sqlc"
-)
-
-const (
-	dbDriver   = "postgres"
-	dbSource   = "postgresql://postgres:postgres@localhost:5500/gobank?sslmode=disable"
-	serverAddr = "127.0.0.1:8080"
+	"github.com/suryadharma5/gobank/util"
 )
 
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	conf, err := util.LoadConfig(".") // pas location dari .env
+	if err != nil {
+		log.Fatal("Cannot load config", err)
+	}
+
+	conn, err := sql.Open(conf.DBDriver, conf.DBSource)
 
 	if err != nil {
 		log.Fatal("Can't connect to db: ", err)
@@ -25,7 +25,7 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAddr)
+	err = server.Start(conf.ServerAddress)
 	if err != nil {
 		log.Fatal("cannot start server:", err)
 	}
