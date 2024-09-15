@@ -6,21 +6,26 @@ import (
 	"fmt"
 )
 
-// provides all functions to execute db queries & transaction
-// ember Queries struct
-type Store struct {
+type Store interface {
+	Querier // implement all Querier interface
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
+// provides all functions to execute real postgres db queries & transaction
+// embed Queries struct
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
-func (s *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (s *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 
 	if err != nil {
@@ -54,7 +59,7 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-func (s *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (s *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := s.execTx(ctx, func(q *Queries) error {
