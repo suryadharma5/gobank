@@ -96,9 +96,3 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, accounts)
 }
-
-func errorResponse(err error) gin.H {
-	return gin.H{
-		"error": err.Error(),
-	}
-}
